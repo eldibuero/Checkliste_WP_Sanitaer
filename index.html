@@ -132,7 +132,49 @@ const SCHEMA = {
 };
 
 /* ---------- Zustand (nur im Speicher) ---------- */
-const state = { step:0, values:{}, remarks:{}, remarkOpen:{}, showErrors:false, msg:null };
+const state = { step:0, values:{}, remarks:{}, remarkOpen:{}, showErrors:false, msg:null, draftDecided:false };
+
+/* ---------- Entwurf im Browser (localStorage, nur auf diesem Gerät) ---------- */
+const DRAFT_KEY = 'eldi-checkliste-waermepumpe-entwurf';
+function saveDraft(){
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ savedAt:new Date().toISOString(), values:state.values, remarks:state.remarks, remarkOpen:state.remarkOpen }));
+    return true;
+  } catch (e) { return false; }
+}
+function getStoredDraft(){
+  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { return null; }
+}
+function clearStoredDraft(){
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+}
+function saveDraftManual(){
+  const ok = saveDraft();
+  state.msg = ok ? 'Entwurf auf diesem Gerät gespeichert.' : 'Speichern im Browser ist nicht möglich. Bitte Entwurf als Datei speichern.';
+  render();
+}
+function draftBanner(){
+  const d = getStoredDraft();
+  const box = el('div', { class:'msg warn show' });
+  const when = d && d.savedAt ? new Date(d.savedAt).toLocaleString('de-DE') : '';
+  box.appendChild(el('div', null, 'Auf diesem Gerät liegt ein gespeicherter Entwurf' + (when ? ' vom ' + when : '') + '.'));
+  const row = el('div', { class:'tools' });
+  const go = el('button', { type:'button', class:'btn' }, 'Entwurf fortsetzen');
+  go.onclick = () => {
+    if (d) { state.values = d.values || {}; state.remarks = d.remarks || {}; state.remarkOpen = d.remarkOpen || {}; }
+    state.draftDecided = true; state.msg = 'Entwurf geladen.'; render();
+  };
+  const no = el('button', { type:'button', class:'btn ghost' }, 'Verwerfen und neu beginnen');
+  no.onclick = () => {
+    clearStoredDraft();
+    state.values = {}; state.remarks = {}; state.remarkOpen = {};
+    state.draftDecided = true; state.msg = 'Gespeicherter Entwurf verworfen.'; render();
+  };
+  row.appendChild(go);
+  row.appendChild(no);
+  box.appendChild(row);
+  return box;
+}
 
 /* ---------- Hilfsfunktionen ---------- */
 function el(tag, attrs, text){
@@ -186,6 +228,7 @@ function applySuggestion(){
   const s = calcSuggestion();
   if (!s) return;
   state.values.pel_gesamt = fmtNum(s.total);
+  saveDraft();
   render();
 }
 function updateCalc(){
@@ -241,14 +284,14 @@ function renderField(f){
     const grp = el('div', { class:'choices', role:'group', 'aria-label': f.label });
     [['yes','Ja'],['no','Nein']].forEach(([val, txt]) => {
       const b = el('button', { type:'button', class:'choice', 'aria-pressed': String(state.values[f.id] === val) }, txt);
-      b.onclick = () => { state.values[f.id] = val; render(); };
+      b.onclick = () => { state.values[f.id] = val; saveDraft(); render(); };
       grp.appendChild(b);
     });
     wrap.appendChild(grp);
   } else if (f.type === 'text' || f.type === 'date') {
     const inp = el('input', { type: f.type === 'date' ? 'date' : 'text', 'aria-label': f.label, inputmode: f.inputmode || null });
     inp.value = state.values[f.id] || '';
-    inp.oninput = () => { state.values[f.id] = inp.value; updateCalc(); };
+    inp.oninput = () => { state.values[f.id] = inp.value; saveDraft(); updateCalc(); };
     wrap.appendChild(inp);
     if (f.calc) {
       const c = el('div', { class:'calc' });
@@ -263,12 +306,12 @@ function renderField(f){
     sel.appendChild(el('option', { value:'' }, 'Bitte wählen'));
     (f.options || []).forEach(o => sel.appendChild(el('option', { value:o }, o)));
     sel.value = state.values[f.id] || '';
-    sel.onchange = () => { state.values[f.id] = sel.value; render(); };
+    sel.onchange = () => { state.values[f.id] = sel.value; saveDraft(); render(); };
     wrap.appendChild(sel);
   } else if (f.type === 'textarea') {
     const ta = el('textarea', { 'aria-label': f.label });
     ta.value = state.values[f.id] || '';
-    ta.oninput = () => { state.values[f.id] = ta.value; };
+    ta.oninput = () => { state.values[f.id] = ta.value; saveDraft(); };
     wrap.appendChild(ta);
   }
 
@@ -277,7 +320,7 @@ function renderField(f){
     if (open) {
       const ta = el('textarea', { 'aria-label': 'Bemerkung zu ' + f.label, placeholder:'Bemerkung' });
       ta.value = state.remarks[f.id] || '';
-      ta.oninput = () => { state.remarks[f.id] = ta.value; };
+      ta.oninput = () => { state.remarks[f.id] = ta.value; saveDraft(); };
       wrap.appendChild(ta);
     } else {
       const b = el('button', { type:'button', class:'remark-toggle' }, '+ Bemerkung hinzufügen');
@@ -421,6 +464,8 @@ function importDraft(file){
       state.remarkOpen = {};
       state.step = 0;
       state.showErrors = false;
+      state.draftDecided = true;
+      saveDraft();
       state.msg = 'Entwurf geladen.';
       render();
     } catch (e) {
@@ -432,6 +477,8 @@ function importDraft(file){
 }
 function resetDraft(){
   state.values = {}; state.remarks = {}; state.remarkOpen = {};
+  clearStoredDraft();
+  state.draftDecided = true;
   state.step = 0; state.showErrors = false; state.msg = 'Formular zurückgesetzt.';
   render();
 }
@@ -460,6 +507,9 @@ function render(){
   tt.appendChild(el('div', { class:'top-title' }, 'Checkliste Wärmepumpe'));
   tt.appendChild(el('div', { class:'top-sub' }, 'ELDI Elektro-Dietrich GmbH'));
   top.appendChild(tt);
+  const saveBtn = el('button', { type:'button', class:'link', style:'margin-left:auto' }, 'Entwurf speichern');
+  saveBtn.onclick = saveDraftManual;
+  top.appendChild(saveBtn);
   app.appendChild(top);
 
   const pct = Math.round(state.step / total * 100);
@@ -471,6 +521,7 @@ function render(){
 
   const main = el('main');
   if (state.msg) main.appendChild(el('div', { class:'msg ok show' }, state.msg));
+  if (!state.draftDecided && getStoredDraft()) main.appendChild(draftBanner());
 
   if (cur.kind === 'summary') {
     renderSummary(main, steps);
