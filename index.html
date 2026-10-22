@@ -75,21 +75,18 @@ ul.miss{margin:6px 0 0;padding-left:18px}
   @bottom-left{content:"ELDI Elektro-Dietrich GmbH · Checkliste Wärmepumpe";font-size:9pt;color:#555}
   @bottom-right{content:"Seite " counter(page) " von " counter(pages);font-size:9pt;color:#555}
 }
+#printDoc{display:none}
 @media print{
   body{background:#fff}
-  body *{visibility:hidden}
-  .print-doc,.print-doc *{visibility:visible}
-  .print-doc{position:absolute;left:0;top:0;width:100%;max-width:none;border:none;padding:0;margin:0}
-  .app>*:not(.preview-wrap){display:none!important}
-  .app{max-width:none;min-height:0}
-  .preview-wrap{border:none;padding:0;margin:0;background:#fff;overflow:visible}
-  .preview-label{display:none}
+  body>*:not(#printDoc){display:none!important}
+  #printDoc{display:block!important;border:none;max-width:none;margin:0;padding:0;color:#1F1F1F;font-family:Arial,Helvetica,sans-serif;font-size:10pt}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="app" id="app"></div>
+<div class="print-doc" id="printDoc"></div>
 
 <script>
 /* ---------- Schema ---------- */
@@ -373,7 +370,7 @@ function renderSummary(main, steps){
   main.appendChild(el('h2', { style:'margin-top:24px' }, 'Vorschau'));
   main.appendChild(el('p', { class:'preview-label' }, 'So sieht das ausgedruckte A4-Dokument aus. Zum Drucken oder Speichern als PDF den Button unten nutzen.'));
   const wrap = el('div', { class:'preview-wrap' });
-  const doc = el('div', { class:'print-doc', id:'printDoc' });
+  const doc = el('div', { class:'print-doc' });
   wrap.appendChild(doc);
   main.appendChild(wrap);
   buildPrintDoc(doc, steps);
@@ -545,6 +542,7 @@ function render(){
     const pdf = el('button', { type:'button', class:'btn' }, 'Drucken / als PDF speichern');
     pdf.disabled = missCount > 0;
     pdf.onclick = () => {
+      buildPrintDoc(document.getElementById('printDoc'), steps);
       let blocked = false;
       try { window.print(); } catch (e) { blocked = true; }
       state.msg = blocked
