@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Checkliste PV-Anlage</title>
+<title>Checkliste Wärmepumpe</title>
 <style>
 :root{--primary:#F28C22;--text:#1F1F1F;--muted:#6b6b6b;--line:#e3e3e3;--err:#b42318;}
 *{box-sizing:border-box}
@@ -27,14 +27,10 @@ h2{font-size:20px;margin:4px 0 2px}
 .choices.three{grid-template-columns:1fr 1fr 1fr}
 .choice{min-height:56px;font-size:17px;font-weight:600;border:2px solid #cfcfcf;border-radius:10px;background:#fff;color:var(--text);cursor:pointer;padding:0 6px}
 .choice[aria-pressed="true"]{border-color:var(--primary);background:var(--primary);color:#fff}
-input[type=text],input[type=date],textarea{width:100%;font-size:17px;padding:12px;border:1px solid #bdbdbd;border-radius:10px;margin-top:10px;font-family:inherit;background:#fff;color:var(--text)}
-.wr-entry{border:1px dashed #d6d6d6;border-radius:10px;padding:10px;margin-top:10px}
-.wr-entry select{margin-top:6px}
-.wr-title{font-weight:600;font-size:14px;color:var(--muted)}
-.add-wr{width:100%;margin-top:12px}
-select{width:100%;font-size:17px;padding:12px;border:1px solid #bdbdbd;border-radius:10px;margin-top:10px;background:#fff;color:var(--text);font-family:inherit}
+input[type=text],input[type=date],textarea,select{width:100%;font-size:17px;padding:12px;border:1px solid #bdbdbd;border-radius:10px;margin-top:10px;font-family:inherit;background:#fff;color:var(--text)}
 textarea{min-height:90px;resize:vertical}
-button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.calc{font-size:13px;color:#7a3e00;margin-top:6px;min-height:0}
 .remark-toggle{margin-top:8px;background:none;border:none;color:#b35a00;font-weight:600;font-size:15px;padding:8px 0;cursor:pointer;text-decoration:underline}
 .msg{font-size:14px;margin:8px 0 12px;padding:10px 12px;border-radius:10px;display:none}
 .msg.show{display:block}
@@ -56,123 +52,129 @@ nav.nav{display:flex;gap:10px;padding:12px 16px 20px;border-top:1px solid var(--
 .sum-a{font-weight:700;margin-top:2px}
 .sum-r{color:var(--muted);margin-top:2px;font-size:13px}
 ul.miss{margin:6px 0 0;padding-left:18px}
+.preview-wrap{margin-top:20px;border:1px dashed #cfcfcf;border-radius:10px;padding:10px;background:#f7f7f7;overflow-x:auto}
+.preview-label{font-size:13px;color:var(--muted);margin:0 0 8px}
 
-.print-doc{display:none}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* Druckansicht (A4) */
+.print-doc{background:#fff;color:#1F1F1F;font-family:Arial,Helvetica,sans-serif;font-size:10pt;padding:14px 16px;min-width:0;max-width:720px;margin:0 auto;border:1px solid #e3e3e3}
+.print-doc .p-head{display:flex;align-items:center;gap:12px;border-bottom:3px solid #F28C22;padding-bottom:8px;margin-bottom:10px}
+.print-doc .p-title{font-size:18pt;margin:0;color:#1F1F1F}
+.print-doc .p-meta{width:100%;border-collapse:collapse;margin-bottom:8px}
+.print-doc .p-meta th{text-align:left;width:28%;padding:3px 6px;background:#fdf3e7;font-weight:700;border:1px solid #e3e3e3}
+.print-doc .p-meta td{padding:3px 6px;border:1px solid #e3e3e3}
+.print-doc .p-sec{font-size:12pt;margin:14px 0 4px;color:#1F1F1F;border-bottom:1px solid #F28C22;padding-bottom:2px;break-after:avoid}
+.print-doc .p-tab{width:100%;border-collapse:collapse;font-size:9.5pt}
+.print-doc .p-tab th{background:#f2f2f2;text-align:left;padding:4px 6px;border:1px solid #cfcfcf}
+.print-doc .p-tab td{padding:4px 6px;border:1px solid #cfcfcf;vertical-align:top}
+.print-doc .p-tab tr{break-inside:avoid}
+.print-doc .p-free{border:1px solid #e3e3e3;padding:6px;min-height:40px;white-space:pre-wrap}
 
 @page{
   size:A4;
   margin:16mm 14mm 20mm 14mm;
-  @bottom-left{content:"ELDI Elektro-Dietrich GmbH · Checkliste PV-Anlage";font-size:9pt;color:#555}
+  @bottom-left{content:"ELDI Elektro-Dietrich GmbH · Checkliste Wärmepumpe";font-size:9pt;color:#555}
   @bottom-right{content:"Seite " counter(page) " von " counter(pages);font-size:9pt;color:#555}
 }
 @media print{
   body{background:#fff}
-  body>*:not(#printDoc){display:none!important}
-  .print-doc{display:block!important;color:#1F1F1F;font-family:Arial,Helvetica,sans-serif;font-size:10pt}
-  .p-head{display:flex;align-items:center;gap:12px;border-bottom:3px solid #F28C22;padding-bottom:8px;margin-bottom:10px}
-  .p-title{font-size:18pt;margin:0;color:#1F1F1F}
-  .p-meta{width:100%;border-collapse:collapse;margin-bottom:8px}
-  .p-meta th{text-align:left;width:28%;padding:3px 6px;background:#fdf3e7;font-weight:700;border:1px solid #e3e3e3}
-  .p-meta td{padding:3px 6px;border:1px solid #e3e3e3}
-  .p-sec{font-size:12pt;margin:14px 0 4px;color:#1F1F1F;border-bottom:1px solid #F28C22;padding-bottom:2px;break-after:avoid}
-  .p-tab{width:100%;border-collapse:collapse;font-size:9.5pt}
-  .p-tab th{background:#f2f2f2;text-align:left;padding:4px 6px;border:1px solid #cfcfcf}
-  .p-tab td{padding:4px 6px;border:1px solid #cfcfcf;vertical-align:top}
-  .p-tab tr{break-inside:avoid}
-  .p-free{border:1px solid #e3e3e3;padding:6px;min-height:40px;white-space:pre-wrap}
+  body *{visibility:hidden}
+  .print-doc,.print-doc *{visibility:visible}
+  .print-doc{position:absolute;left:0;top:0;width:100%;max-width:none;border:none;padding:0;margin:0}
+  .app>*:not(.preview-wrap){display:none!important}
+  .app{max-width:none;min-height:0}
+  .preview-wrap{border:none;padding:0;margin:0;background:#fff;overflow:visible}
+  .preview-label{display:none}
 }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 <div class="app" id="app"></div>
-<div id="printDoc" class="print-doc" aria-hidden="true"></div>
 
 <script>
-/* ---------- Schema (entspricht dem JSON-Entwurf) ---------- */
-const WR_TYPEN = [
-  'SMA STP X15','SMA STP X12','SMA STP X20','SMA STP X25','SMA STP 5.0-3SE40','SMA STP 6.0-3 SE-40',
-  'SMA STP 8.0-3 SE-40','SMA STP 10.0-3 SE-40','SMA Core 2 STP 110-60','SMA STP 125','SMA STP25-000 TL (alt)',
-  'KOSTAL PIKO IQ 4,2','Solarworld Piko 4.2 (gebraucht)','KOSTAL PIKO IQ 5,5','KOSTAL PIKO IQ 8,5 (gebraucht)',
-  'KOSTAL Plenticore plus 3.0 G2','KOSTAL Plenticore plus 4.2 G2','KOSTAL Plenticore plus 5.5 G2',
-  'KOSTAL Plenticore plus 7.0 G2','KOSTAL Plenticore plus 8.5 G2','KOSTAL Plenticore plus 10',
-  'KOSTAL Plenticore S G3','KOSTAL Plenticore M G3','KOSTAL Plenticore L G3',
-  'Anderer Typ (bitte Bemerkung nutzen)'
-];
-const SPEICHER_TYPEN = [
-  'Varta Wall 10kWh',
-  'BYD Battery Box HVB 5.9','BYD Battery Box HVB 8.9','BYD Battery Box HVB 11.8','BYD Battery Box HVB 14.8',
-  'BYD Battery Box HVB 17.8','BYD Battery Box HVB 20.7','BYD Battery Box HVB 23.7','BYD Battery Box HVB 26.7',
-  'BYD Battery Box HVB 29.6',
-  'BYD Battery Box HVS 5.1','BYD Battery Box HVS 7.7','BYD Battery Box HVS 10.2','BYD Battery Box HVS 12.8',
-  'BYD Battery Box HVM 8.3','BYD Battery Box HVM 11.0','BYD Battery Box HVM 13.8','BYD Battery Box HVM 16.6',
-  'BYD Battery Box HVM 19.3','BYD Battery Box HVM 22.1',
-  'BYD Battery Box HVS+ 5.1','BYD Battery Box HVS+ 7.7','BYD Battery Box HVS+ 10.2','BYD Battery Box HVS+ 12.8',
-  'BYD Battery Box HVM+ 8.3','BYD Battery Box HVM+ 11.0','BYD Battery Box HVM+ 13.8','BYD Battery Box HVM+ 16.6',
-  'BYD Battery Box HVM+ 19.3','BYD Battery Box HVM+ 22.1',
-  'SMA HS-BM-3.28-10',
-  'Anderer Speicher (bitte Bemerkung nutzen)'
-];
-const MODUL_TYPEN = [
-  'Meyer Burger White 370Wp','Meyer Burger White 370Wp Project','Meyer Burger White 375Wp','Meyer Burger White 385Wp',
-  'Meyer Burger White 390Wp','Meyer Burger White 395Wp','Meyer Burger White 395Wp Project','Meyer Burger White 400Wp',
-  'Meyer Burger White 400Wp Project','Meyer Burger Black 375Wp','Meyer Burger Black 380Wp','Meyer Burger Black 385Wp',
-  'Meyer Burger Black 390Wp','Meyer Burger Black 395Wp','Meyer Burger Black 395Wp Project','Meyer Burger Glas 380Wp',
-  'Meyer Burger Glas 385Wp','Meyer Burger Glas 390Wp Project','AIKO A485-MCE54Db Glas Glas Black',
-  'AIKO Neostar 3P AIKO-A500-MCE54Mw - 500 Wp','Hyundai 415 Wp',
-  'Anderer Modultyp (bitte Bemerkung nutzen)'
-];
+/* ---------- Schema ---------- */
+const ANZAHL_WP = Array.from({ length: 10 }, (_, i) => String(i + 1));
+
 const SCHEMA = {
   header: [
-    { id:'objekt', label:'Objekt', type:'text', required:true, hint:'Anlagenbezeichnung oder Adresse' },
-    { id:'monteur', label:'Monteur', type:'text', required:true },
     { id:'datum', label:'Datum', type:'date', required:true },
-    { id:'anlage_staedtisch', label:'Städtische Anlage (AfU, Solar-Log)?', type:'yes_no', required:true }
+    { id:'bearbeiter', label:'Bearbeiter', type:'text', required:true, remark:true }
   ],
   blocks: [
-    { id:'dach_blitzschutz', title:'Dach & Blitzschutz', fields:[
-      { id:'module_liste', label:'Welche PV-Module wurden montiert?', type:'inverter_list', itemLabel:'Modultyp', addLabel:'+ Weiteren Modultyp hinzufügen', options:MODUL_TYPEN, mengeOptions:Array.from({ length:500 }, (_, i) => String(i + 1)), required:true },
-      { id:'blitzschutz_vorhanden', label:'Blitzschutz auf dem Dach vorhanden?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'anlage_blitzschutz_eingebunden', label:'Anlage im Blitzschutz eingebunden?', type:'yes_no', required:true, remark:'Bemerkung', visibleIf:{ field:'blitzschutz_vorhanden', equals:'yes' } },
-      { id:'potentialausgleich_dach', label:'Potentialausgleich auf dem Dach angeschlossen?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'anlage_dach_montiert', label:'Anlage auf dem Dach fertig montiert?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'pv_straenge_laenge_eingetragen', label:'Länge der PV-Stränge eingetragen', hint:'Bitte grob eintragen für Tabellenanhang', type:'yes_no', required:true, remark:'Stranglängen (grob, für Tabellenanhang)' }
+    { id:'kunde', title:'Kundendaten', fields:[
+      { id:'name', label:'Name', type:'text', required:true, remark:true },
+      { id:'vorname', label:'Vorname', type:'text', required:true, remark:true },
+      { id:'adresse', label:'Adresse', type:'text', required:true, hint:'Straße, Hausnummer, PLZ, Ort', remark:true },
+      { id:'telefon', label:'Telefonnummer', type:'text', required:true, inputmode:'tel', remark:true },
+      { id:'email', label:'E-Mail-Adresse', type:'text', required:true, inputmode:'email', remark:true },
+      { id:'zaehler', label:'Zählernummer', type:'text', required:true, remark:true },
+      { id:'extra_zaehler', label:'Soll ein extra Wärmepumpenzähler gesetzt werden?', type:'yes_no', required:true, remark:true }
     ]},
-    { id:'wechselrichter_ueberspannung', title:'Wechselrichter & Überspannungsschutz', fields:[
-      { id:'wechselrichter_montiert', label:'Wechselrichter montiert?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'wechselrichter_liste', label:'Welche Wechselrichter wurden montiert?', type:'inverter_list', itemLabel:'Wechselrichter', addLabel:'+ Weiteren Wechselrichter hinzufügen', options:WR_TYPEN, mengeOptions:['1','2','3','4','5','6','7','8','9','10'], required:true, visibleIf:{ field:'wechselrichter_montiert', equals:'yes' } },
-      { id:'ueberspannungsableiter', label:'Überspannungsableiter im WR oder Überspannungsbox montiert und angeschlossen?', hint:'Nur bei Stadt und Blitzschutz', type:'yes_no_na', naLabel:'n. vorh.', required:true, remark:'Bemerkung',
-        visibleIf:{ any:[ { field:'blitzschutz_vorhanden', equals:'yes' }, { field:'anlage_staedtisch', equals:'yes' } ] } }
+    { id:'wp', title:'Wärmepumpe(n)', fields:[
+      { id:'anzahl_wp', label:'Wie viele Wärmepumpen sind verbaut?', type:'select', options:ANZAHL_WP, required:true, remark:true },
+      { id:'betriebsweise', label:'Betriebsweise', type:'select', options:['monovalent','bivalent','monoenergetisch'], required:true, remark:true },
+      { id:'anzahl_gleich', label:'Anzahl der WP mit gleicher Leistung', type:'text', required:true, inputmode:'numeric', hint:'Z. B. 2, wenn zwei identische Geräte verbaut sind', remark:true },
+      { id:'pel_je_wp', label:'Elektrische Anschlussleistung Pel je Wärmepumpe in kW', type:'text', required:true, inputmode:'decimal', hint:'Laut Typenschild, z. B. 3,5', remark:true },
+      { id:'anlaufstrom', label:'Maximaler Anlaufstrom je WP in A', type:'text', required:true, inputmode:'decimal', hint:'Laut Datenblatt bzw. Typenschild', remark:true }
     ]},
-    { id:'speicher', title:'Batteriespeicher', fields:[
-      { id:'speicher_vorhanden', label:'Ist ein Batteriespeicher installiert?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'speicher_liste', label:'Welche Speicher wurden installiert?', type:'inverter_list', itemLabel:'Speicher', addLabel:'+ Weiteren Speicher hinzufügen', options:SPEICHER_TYPEN, mengeOptions:['1','2','3','4','5','6','7','8','9','10'], required:true, visibleIf:{ field:'speicher_vorhanden', equals:'yes' } }
+    { id:'ergh', title:'Ergänzungsheizung', fields:[
+      { id:'ergh_vorh', label:'Ist eine Ergänzungsheizung vorhanden?', type:'yes_no', required:true, remark:true },
+      { id:'ergh_art', label:'Ergänzungsheizung für', type:'select', options:['Warmwasserversorgung','Raumheizung','Warmwasser und Raumheizung'], required:true, remark:true, visibleIf:{ field:'ergh_vorh', equals:'yes' } },
+      { id:'ergh_kw', label:'Nennleistung Pel der elektrischen Ergänzungsheizung in kW', type:'text', required:true, inputmode:'decimal', hint:'Elektrische Anschlussleistung der Heizstäbe, z. B. 3', remark:true, visibleIf:{ field:'ergh_vorh', equals:'yes' } }
     ]},
-    { id:'potentialausgleich_zuleitungen', title:'Potentialausgleich & Zuleitungen', fields:[
-      { id:'pa_schiene_montiert', label:'Potentialausgleichsschiene Montiert?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'wr_pv_speicher_an_pa', label:'WR, PV-Anlage, Speicher an Pot angeschlossen?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'zuleitung_pa_schiene', label:'Zuleitung für Potentialausgleichsschiene (von Hauptpotentialausgleichsschiene) verlegt und angeschlossen?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'zuleitung_wechselrichter', label:'Zuleitung zum Wechselrichter verlegt und angeschlossen?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'zuleitung_pv_schrank', label:'Zuleitung zum PV-Schrank verlegt und angeschlossen?', hint:'Falls vorhanden!', type:'yes_no_na', naLabel:'n. vorh.', required:true, remark:'Bemerkung' }
+    { id:'gesamt', title:'Gesamtleistung Wärmepumpenanlage', fields:[
+      { id:'pel_gesamt', label:'Gesamtleistung Pel der Wärmepumpenanlage in kW', type:'text', required:true, inputmode:'decimal', hint:'Inklusive Ergänzungsheizung, falls vorhanden', calc:true, remark:true }
     ]},
-    { id:'dokumentation', title:'Dokumentation, Bilder & Strangschema', fields:[
-      { id:'bilder_dach', label:'Ausreichend Bilder vom Dach gemacht und im Ordner abgelegt?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'strangschema_vorhanden', label:'Strangschema Dachaufsicht vorhanden?', type:'yes_no', required:true, remark:'Bemerkung' },
-      { id:'strangschema_aenderungen', label:'Änderungen eingetragen und im Ordner abgelegt?', hint:'Wenn ja', type:'yes_no', required:true, remark:'Bemerkung', visibleIf:{ field:'strangschema_vorhanden', equals:'yes' } }
-    ]},
-    { id:'staedtisch', title:'Städtische Anlagen (AfU, Solar-Log)', visibleIf:{ field:'anlage_staedtisch', equals:'yes' }, fields:[
-      { id:'steckdose_zuleitung', label:'Steckdose incl. Zuleitung verlegt und montiert?', hint:'Nur bei Städtisch (AfU, Solar-Log)', type:'yes_no', required:true, remark:'Bemerkung' }
-    ]},
-    { id:'abschluss', title:'Bemerkungen gesamt', fields:[
+    { id:'abschluss', title:'Bemerkung gesamt', fields:[
       { id:'bemerkung_gesamt', label:'Bemerkung', type:'textarea', required:false }
     ]}
   ]
 };
 
-/* ---------- Zustand (nur im Speicher, keine Ablage) ---------- */
-const state = { step:0, values:{}, remarks:{}, remarkOpen:{}, showErrors:false };
+/* ---------- Zustand (nur im Speicher) ---------- */
+const state = { step:0, values:{}, remarks:{}, remarkOpen:{}, showErrors:false, msg:null, draftDecided:false };
+
+/* ---------- Entwurf im Browser (localStorage, nur auf diesem Gerät) ---------- */
+const DRAFT_KEY = 'eldi-checkliste-waermepumpe-entwurf';
+function saveDraft(){
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ savedAt:new Date().toISOString(), values:state.values, remarks:state.remarks, remarkOpen:state.remarkOpen }));
+    return true;
+  } catch (e) { return false; }
+}
+function getStoredDraft(){
+  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch (e) { return null; }
+}
+function clearStoredDraft(){
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+}
+function saveDraftManual(){
+  const ok = saveDraft();
+  state.msg = ok ? 'Entwurf auf diesem Gerät gespeichert.' : 'Speichern im Browser ist nicht möglich. Bitte Entwurf als Datei speichern.';
+  render();
+}
+function draftBanner(){
+  const d = getStoredDraft();
+  const box = el('div', { class:'msg warn show' });
+  const when = d && d.savedAt ? new Date(d.savedAt).toLocaleString('de-DE') : '';
+  box.appendChild(el('div', null, 'Auf diesem Gerät liegt ein gespeicherter Entwurf' + (when ? ' vom ' + when : '') + '.'));
+  const row = el('div', { class:'tools' });
+  const go = el('button', { type:'button', class:'btn' }, 'Entwurf fortsetzen');
+  go.onclick = () => {
+    if (d) { state.values = d.values || {}; state.remarks = d.remarks || {}; state.remarkOpen = d.remarkOpen || {}; }
+    state.draftDecided = true; state.msg = 'Entwurf geladen.'; render();
+  };
+  const no = el('button', { type:'button', class:'btn ghost' }, 'Verwerfen und neu beginnen');
+  no.onclick = () => {
+    clearStoredDraft();
+    state.values = {}; state.remarks = {}; state.remarkOpen = {};
+    state.draftDecided = true; state.msg = 'Gespeicherter Entwurf verworfen.'; render();
+  };
+  row.appendChild(go);
+  row.appendChild(no);
+  box.appendChild(row);
+  return box;
+}
 
 /* ---------- Hilfsfunktionen ---------- */
 function el(tag, attrs, text){
@@ -193,30 +195,59 @@ function condOk(c){
 function isVisible(x){ return condOk(x.visibleIf); }
 function hasValue(f){
   const v = state.values[f.id];
-  if (f.type === 'inverter_list') return Array.isArray(v) && v.length > 0 && v.every(e => e.typ && e.menge);
-  if (f.type === 'text' || f.type === 'date' || f.type === 'textarea' || f.type === 'select') return typeof v === 'string' && v.trim() !== '';
-  return v !== undefined;
+  if (f.type === 'yes_no') return v === 'yes' || v === 'no';
+  return typeof v === 'string' && v.trim() !== '';
+}
+function missingIn(fields){ return fields.filter(f => f.required && !hasValue(f)); }
+function parseNum(s){
+  if (typeof s !== 'string') return NaN;
+  return parseFloat(s.trim().replace(',', '.'));
+}
+function fmtNum(n){ return n.toLocaleString('de-DE', { maximumFractionDigits:2 }); }
+function calcSuggestion(){
+  const n = parseInt(state.values.anzahl_wp, 10);
+  const p = parseNum(state.values.pel_je_wp);
+  if (!n || isNaN(p)) return null;
+  let ergh = 0;
+  if (state.values.ergh_vorh === 'yes') {
+    ergh = parseNum(state.values.ergh_kw);
+    if (isNaN(ergh)) return null;
+  }
+  const wp = Math.round(n * p * 100) / 100;
+  const total = Math.round((n * p + ergh) * 100) / 100;
+  return { n, p, wp, ergh, total, hasErgh: state.values.ergh_vorh === 'yes' };
+}
+function calcText(){
+  const s = calcSuggestion();
+  if (!s) return 'Vorschlag: Anzahl WP, Pel je WP' + (state.values.ergh_vorh === 'yes' ? ' und Nennleistung der Ergänzungsheizung' : '') + ' eintragen, dann wird die Gesamtleistung berechnet.';
+  let text = 'Vorschlag: ' + s.n + ' × ' + fmtNum(s.p) + ' kW = ' + fmtNum(s.wp) + ' kW';
+  if (s.hasErgh) text += ' + ' + fmtNum(s.ergh) + ' kW Ergänzungsheizung';
+  return text + ' = ' + fmtNum(s.total) + ' kW (bei unterschiedlichen WP-Typen bitte manuell korrigieren).';
+}
+function applySuggestion(){
+  const s = calcSuggestion();
+  if (!s) return;
+  state.values.pel_gesamt = fmtNum(s.total);
+  saveDraft();
+  render();
+}
+function updateCalc(){
+  document.querySelectorAll('[data-calc]').forEach(node => { node.textContent = calcText(); });
 }
 function answerText(f){
   const v = state.values[f.id];
-  if (f.type === 'inverter_list') {
-    const items = (Array.isArray(v) ? v : []).filter(e => e.typ && e.menge).map(e => e.menge + '× ' + e.typ);
-    return items.length ? items.join(' | ') : 'Nicht angegeben';
-  }
-  if (f.type === 'yes_no' || f.type === 'yes_no_na') {
+  if (f.type === 'yes_no') {
     if (v === 'yes') return 'Ja';
     if (v === 'no') return 'Nein';
-    if (v === 'na') return f.naLabel || 'n. vorh.';
     return 'Nicht beantwortet';
   }
   if (!v || (typeof v === 'string' && !v.trim())) return 'Nicht angegeben';
+  if (f.id === 'pel_gesamt' && !v) return 'Nicht angegeben';
   return v;
 }
 function checkMarks(f){
   const v = state.values[f.id];
-  const opts = [['yes','Ja'],['no','Nein']];
-  if (f.type === 'yes_no_na') opts.push(['na', f.naLabel || 'n. vorh.']);
-  return opts.map(([k,t]) => (v === k ? '☒' : '☐') + ' ' + t).join('   ');
+  return [['yes','Ja'],['no','Nein']].map(([k,t]) => (v === k ? '☒' : '☐') + ' ' + t).join('   ');
 }
 function brandMark(h){
   const wrap = el('div', { class:'brand' });
@@ -241,78 +272,55 @@ function getSteps(){
   steps.push({ kind:'summary' });
   return steps;
 }
-function missingIn(fields){ return fields.filter(f => f.required && !hasValue(f)); }
 
 /* ---------- Feld-Rendering ---------- */
 function renderField(f){
   const invalid = state.showErrors && f.required && !hasValue(f);
-  const wrap = el('div', { class: 'q' + (invalid ? ' invalid' : ''), 'data-id': f.id });
+  const wrap = el('div', { class:'q' + (invalid ? ' invalid' : ''), 'data-id': f.id });
   wrap.appendChild(el('div', { class:'q-label' }, f.label));
   if (f.hint) wrap.appendChild(el('div', { class:'q-hint' }, f.hint));
 
-  if (f.type === 'yes_no' || f.type === 'yes_no_na') {
-    const opts = [['yes','Ja'],['no','Nein']];
-    if (f.type === 'yes_no_na') opts.push(['na', f.naLabel || 'n. vorh.']);
-    const grp = el('div', { class: 'choices' + (opts.length === 3 ? ' three' : ''), role:'group', 'aria-label': f.label });
-    opts.forEach(([val, txt]) => {
+  if (f.type === 'yes_no') {
+    const grp = el('div', { class:'choices', role:'group', 'aria-label': f.label });
+    [['yes','Ja'],['no','Nein']].forEach(([val, txt]) => {
       const b = el('button', { type:'button', class:'choice', 'aria-pressed': String(state.values[f.id] === val) }, txt);
-      b.onclick = () => { state.values[f.id] = val; render(); };
+      b.onclick = () => { state.values[f.id] = val; saveDraft(); render(); };
       grp.appendChild(b);
     });
     wrap.appendChild(grp);
   } else if (f.type === 'text' || f.type === 'date') {
-    const inp = el('input', { type: f.type === 'date' ? 'date' : 'text', 'aria-label': f.label, placeholder: f.hint || '' });
+    const inp = el('input', { type: f.type === 'date' ? 'date' : 'text', 'aria-label': f.label, inputmode: f.inputmode || null });
     inp.value = state.values[f.id] || '';
-    inp.oninput = () => { state.values[f.id] = inp.value; };
+    inp.oninput = () => { state.values[f.id] = inp.value; saveDraft(); updateCalc(); };
     wrap.appendChild(inp);
+    if (f.calc) {
+      const c = el('div', { class:'calc' });
+      c.appendChild(el('span', { 'data-calc':'1' }, calcText()));
+      const use = el('button', { type:'button', class:'btn ghost', style:'margin-top:10px;min-height:48px;width:100%' }, 'Vorschlag übernehmen');
+      use.onclick = applySuggestion;
+      c.appendChild(use);
+      wrap.appendChild(c);
+    }
   } else if (f.type === 'select') {
     const sel = el('select', { 'aria-label': f.label });
     sel.appendChild(el('option', { value:'' }, 'Bitte wählen'));
     (f.options || []).forEach(o => sel.appendChild(el('option', { value:o }, o)));
     sel.value = state.values[f.id] || '';
-    sel.onchange = () => { state.values[f.id] = sel.value; render(); };
+    sel.onchange = () => { state.values[f.id] = sel.value; saveDraft(); render(); };
     wrap.appendChild(sel);
-  } else if (f.type === 'inverter_list') {
-    if (!Array.isArray(state.values[f.id]) || !state.values[f.id].length) state.values[f.id] = [{ typ:'', menge:'' }];
-    const list = state.values[f.id];
-    list.forEach((entry, idx) => {
-      const box = el('div', { class:'wr-entry' });
-      box.appendChild(el('div', { class:'wr-title' }, (f.itemLabel || 'Gerät') + ' ' + (idx + 1)));
-      const sTyp = el('select', { 'aria-label': (f.itemLabel || 'Gerät') + ' Typ ' + (idx + 1) });
-      sTyp.appendChild(el('option', { value:'' }, 'Typ wählen'));
-      (f.options || []).forEach(o => sTyp.appendChild(el('option', { value:o }, o)));
-      sTyp.value = entry.typ || '';
-      sTyp.onchange = () => { entry.typ = sTyp.value; render(); };
-      box.appendChild(sTyp);
-      const sMen = el('select', { 'aria-label': 'Anzahl ' + (f.itemLabel || 'Gerät') + ' ' + (idx + 1) });
-      sMen.appendChild(el('option', { value:'' }, 'Anzahl wählen'));
-      (f.mengeOptions || []).forEach(o => sMen.appendChild(el('option', { value:o }, o)));
-      sMen.value = entry.menge || '';
-      sMen.onchange = () => { entry.menge = sMen.value; render(); };
-      box.appendChild(sMen);
-      if (list.length > 1) {
-        const rm = el('button', { type:'button', class:'link' }, 'Diesen Eintrag entfernen');
-        rm.onclick = () => { list.splice(idx, 1); render(); };
-        box.appendChild(rm);
-      }
-      wrap.appendChild(box);
-    });
-    const add = el('button', { type:'button', class:'btn ghost add-wr' }, f.addLabel || '+ Weiteres Gerät hinzufügen');
-    add.onclick = () => { list.push({ typ:'', menge:'' }); render(); };
-    wrap.appendChild(add);
   } else if (f.type === 'textarea') {
     const ta = el('textarea', { 'aria-label': f.label });
     ta.value = state.values[f.id] || '';
-    ta.oninput = () => { state.values[f.id] = ta.value; };
+    ta.oninput = () => { state.values[f.id] = ta.value; saveDraft(); };
     wrap.appendChild(ta);
   }
 
   if (f.remark) {
     const open = state.remarkOpen[f.id] || !!state.remarks[f.id];
     if (open) {
-      const ta = el('textarea', { 'aria-label': f.remark, placeholder: f.remark });
+      const ta = el('textarea', { 'aria-label': 'Bemerkung zu ' + f.label, placeholder:'Bemerkung' });
       ta.value = state.remarks[f.id] || '';
-      ta.oninput = () => { state.remarks[f.id] = ta.value; };
+      ta.oninput = () => { state.remarks[f.id] = ta.value; saveDraft(); };
       wrap.appendChild(ta);
     } else {
       const b = el('button', { type:'button', class:'remark-toggle' }, '+ Bemerkung hinzufügen');
@@ -323,7 +331,7 @@ function renderField(f){
   return wrap;
 }
 
-/* ---------- Zusammenfassung ---------- */
+/* ---------- Zusammenfassung und Vorschau ---------- */
 function renderSummary(main, steps){
   main.appendChild(el('h2', null, 'Zusammenfassung'));
   const missing = [];
@@ -331,7 +339,6 @@ function renderSummary(main, steps){
     if (s.kind === 'summary') return;
     missingIn(s.fields).forEach(f => missing.push({ f, idx:i, title:s.title }));
   });
-
   if (missing.length) {
     const box = el('div', { class:'msg warn show' });
     box.appendChild(el('strong', null, missing.length + ' Pflichtangabe(n) fehlen:'));
@@ -340,7 +347,8 @@ function renderSummary(main, steps){
       const li = el('li');
       const b = el('button', { type:'button', class:'link' }, m.f.label + ' (' + m.title + ')');
       b.onclick = () => { state.step = m.idx; state.showErrors = true; render(); };
-      li.appendChild(b); ul.appendChild(li);
+      li.appendChild(b);
+      ul.appendChild(li);
     });
     box.appendChild(ul);
     main.appendChild(box);
@@ -362,6 +370,14 @@ function renderSummary(main, steps){
     main.appendChild(sec);
   });
 
+  main.appendChild(el('h2', { style:'margin-top:24px' }, 'Vorschau'));
+  main.appendChild(el('p', { class:'preview-label' }, 'So sieht das ausgedruckte A4-Dokument aus. Zum Drucken oder Speichern als PDF den Button unten nutzen.'));
+  const wrap = el('div', { class:'preview-wrap' });
+  const doc = el('div', { class:'print-doc', id:'printDoc' });
+  wrap.appendChild(doc);
+  main.appendChild(wrap);
+  buildPrintDoc(doc, steps);
+
   const tools = el('div', { class:'tools' });
   const bx = el('button', { type:'button', class:'btn ghost' }, 'Entwurf als Datei speichern');
   bx.onclick = exportDraft;
@@ -369,20 +385,20 @@ function renderSummary(main, steps){
   bn.onclick = resetDraft;
   tools.appendChild(bx);
   tools.appendChild(bn);
+  tools.appendChild(importRow());
   main.appendChild(tools);
   return missing.length;
 }
 
-/* ---------- Druckansicht (A4) ---------- */
-function buildPrintDoc(steps){
-  const pd = document.getElementById('printDoc');
-  pd.innerHTML = '';
+/* ---------- Druckansicht ---------- */
+function buildPrintDoc(target, steps){
+  target.innerHTML = '';
   const head = el('div', { class:'p-head' });
   head.appendChild(brandMark(44));
   const t = el('div');
-  t.appendChild(el('h1', { class:'p-title' }, 'Checkliste PV-Anlage'));
+  t.appendChild(el('h1', { class:'p-title' }, 'Checkliste Wärmepumpe'));
   head.appendChild(t);
-  pd.appendChild(head);
+  target.appendChild(head);
 
   const meta = el('table', { class:'p-meta' });
   SCHEMA.header.forEach(f => {
@@ -391,60 +407,51 @@ function buildPrintDoc(steps){
     tr.appendChild(el('td', null, answerText(f)));
     meta.appendChild(tr);
   });
-  pd.appendChild(meta);
+  target.appendChild(meta);
 
   steps.forEach(s => {
     if (s.kind !== 'block') return;
-    pd.appendChild(el('h3', { class:'p-sec' }, s.title));
+    target.appendChild(el('h3', { class:'p-sec' }, s.title));
     const onlyText = s.fields.every(f => f.type === 'textarea');
     if (onlyText) {
       s.fields.forEach(f => {
-        pd.appendChild(el('div', { class:'p-free' }, answerText(f) + (state.remarks[f.id] ? '\n' + state.remarks[f.id] : '')));
+        const txt = answerText(f) + (state.remarks[f.id] ? '\n' + state.remarks[f.id] : '');
+        target.appendChild(el('div', { class:'p-free' }, txt));
       });
       return;
     }
     const tb = el('table', { class:'p-tab' });
     const thead = el('tr');
-    ['Check','Text','Bemerkung'].forEach((h, i) => {
+    ['Angabe','Feld','Bemerkung'].forEach((h, i) => {
       const th = el('th', null, h);
-      th.style.width = ['20%','54%','26%'][i];
+      th.style.width = ['26%','50%','24%'][i];
       thead.appendChild(th);
     });
     tb.appendChild(thead);
     s.fields.forEach(f => {
       const tr = el('tr');
-      tr.appendChild(el('td', null, (f.type === 'select' || f.type === 'inverter_list') ? answerText(f) : checkMarks(f)));
+      tr.appendChild(el('td', null, f.type === 'yes_no' ? checkMarks(f) : answerText(f)));
       tr.appendChild(el('td', null, f.label + (f.hint ? ' (' + f.hint + ')' : '')));
       tr.appendChild(el('td', null, state.remarks[f.id] || ''));
       tb.appendChild(tr);
     });
-    pd.appendChild(tb);
+    target.appendChild(tb);
   });
 }
 
-/* ---------- Entwurf: Zwischenspeicher im Browser und Datei ---------- */
-const DRAFT_KEY = 'eldi-checkliste-pv-entwurf';
-function saveLocal(){
-  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ savedAt:new Date().toISOString(), values:state.values, remarks:state.remarks, remarkOpen:state.remarkOpen })); return true; } catch(e) { return false; }
-}
-function getStoredDraft(){
-  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); } catch(e) { return null; }
-}
-function saveDraftManual(){
-  const ok = saveLocal();
-  state.draftMsg = ok ? 'Entwurf auf diesem Gerät gespeichert.' : 'Speichern im Browser ist nicht möglich. Bitte Entwurf als Datei speichern.';
-  render();
-}
+/* ---------- Entwurf als Datei ---------- */
 function draftFileName(){
-  const obj = (state.values.objekt || 'ohne_Objekt').replace(/[^A-Za-z0-9äöüÄÖÜß-]+/g, '_').replace(/^_+|_+$/g, '') || 'ohne_Objekt';
-  return 'Entwurf_Checkliste_PV_' + obj + '.json';
+  const name = (state.values.name || 'ohne_Name').replace(/[^A-Za-z0-9äöüÄÖÜß-]+/g, '_').replace(/^_+|_+$/g, '') || 'ohne_Name';
+  return 'Entwurf_Checkliste_Waermepumpe_' + name + '.json';
 }
 function exportDraft(){
-  const data = JSON.stringify({ formName:'Checkliste PV-Anlage', version:1, savedAt:new Date().toISOString(), values:state.values, remarks:state.remarks }, null, 2);
+  const data = JSON.stringify({ formName:'Checkliste Wärmepumpe', version:1, savedAt:new Date().toISOString(), values:state.values, remarks:state.remarks }, null, 2);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], { type:'application/json' }));
   a.download = draftFileName();
-  document.body.appendChild(a); a.click(); a.remove();
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 function importDraft(file){
   const r = new FileReader();
@@ -452,17 +459,27 @@ function importDraft(file){
     try {
       const d = JSON.parse(r.result);
       if (!d || typeof d.values !== 'object') throw new Error('kein Entwurf');
-      state.values = d.values; state.remarks = d.remarks || {}; state.remarkOpen = {};
-      state.step = 0; state.showErrors = false;
+      state.values = d.values;
+      state.remarks = d.remarks || {};
+      state.remarkOpen = {};
+      state.step = 0;
+      state.showErrors = false;
+      state.draftDecided = true;
+      saveDraft();
+      state.msg = 'Entwurf geladen.';
       render();
-    } catch(e) { alert('Die Datei ist kein gültiger Entwurf dieser Checkliste.'); }
+    } catch (e) {
+      state.msg = 'Die Datei ist kein gültiger Entwurf dieser Checkliste.';
+      render();
+    }
   };
   r.readAsText(file);
 }
 function resetDraft(){
-  if (!confirm('Alle Eingaben dieses Formulars verwerfen?')) return;
-  state.values = {}; state.remarks = {}; state.remarkOpen = {}; state.step = 0; state.showErrors = false;
-  try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+  state.values = {}; state.remarks = {}; state.remarkOpen = {};
+  clearStoredDraft();
+  state.draftDecided = true;
+  state.step = 0; state.showErrors = false; state.msg = 'Formular zurückgesetzt.';
   render();
 }
 function importRow(){
@@ -473,111 +490,6 @@ function importRow(){
   lab.appendChild(inp);
   row.appendChild(lab);
   return row;
-}
-
-/* ---------- PDF direkt erzeugen (kein Druckdialog nötig) ---------- */
-function createPdf(steps){
-  const lib = window.jspdf && window.jspdf.jsPDF;
-  if (!lib) {
-    alert('Die PDF-Erstellung konnte nicht geladen werden. Bitte Internetverbindung prüfen und die Seite neu laden.');
-    return;
-  }
-  const doc = new lib({ unit:'mm', format:'a4', orientation:'portrait' });
-  if (typeof doc.autoTable !== 'function') {
-    alert('Die PDF-Erweiterung konnte nicht geladen werden. Bitte Seite neu laden.');
-    return;
-  }
-  const M = 15, W = 210, FOOT_Y = 287;
-  const ORANGE = [242,140,34], DARK = [31,31,31], SOFT = [253,243,231];
-
-  // Logo: Blitz-Form aus dem Formular plus Schriftzug
-  doc.setFillColor(...ORANGE);
-  doc.lines([[-36,52],[22,0],[-8,40],[42,-56],[-22,0],[14,-36],[-12,0]], M, 12, [0.2,0.2], 'F', true);
-  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(...DARK);
-  doc.text('ELDI', M + 13, 22);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
-  doc.text('ELDI Elektro-Dietrich GmbH', M + 13, 27);
-
-  doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...DARK);
-  doc.text('Checkliste PV-Anlage', M, 40);
-  doc.setDrawColor(...ORANGE); doc.setLineWidth(0.8); doc.line(M, 43, W - M, 43);
-
-  const common = {
-    theme:'grid',
-    margin:{ left:M, right:M, top:20, bottom:20 },
-    styles:{ fontSize:9, cellPadding:2, textColor:DARK, lineColor:[200,200,200], lineWidth:0.2, valign:'top' },
-    headStyles:{ fillColor:SOFT, textColor:DARK, fontStyle:'bold' }
-  };
-
-  doc.autoTable(Object.assign({}, common, {
-    startY:47,
-    head:[],
-    body: SCHEMA.header.map(f => [f.label, answerText(f)]),
-    columnStyles:{ 0:{ fontStyle:'bold', fillColor:SOFT, cellWidth:70 }, 1:{ cellWidth:110 } }
-  }));
-
-  const checkMarksPdf = f => {
-    const v = state.values[f.id];
-    const opts = [['yes','Ja'],['no','Nein']];
-    if (f.type === 'yes_no_na') opts.push(['na', f.naLabel || 'n. vorh.']);
-    return opts.map(([k,t]) => (v === k ? '[X]' : '[  ]') + ' ' + t).join('   ');
-  };
-
-  let y = doc.lastAutoTable.finalY + 8;
-  steps.forEach(s => {
-    if (s.kind !== 'block') return;
-    const rows = s.fields.map(f => {
-      if (f.type === 'textarea') return ['', f.label, answerText(f)];
-      if (f.type === 'select' || f.type === 'inverter_list') return ['', f.label + '\n' + answerText(f), state.remarks[f.id] || ''];
-      return [checkMarksPdf(f), f.label + (f.hint ? ' (' + f.hint + ')' : ''), state.remarks[f.id] || ''];
-    });
-    doc.autoTable(Object.assign({}, common, {
-      startY:y,
-      head:[
-        [{ content:s.title, colSpan:3, styles:{ fillColor:ORANGE, textColor:255, fontStyle:'bold', fontSize:10 } }],
-        ['Check','Text','Bemerkung']
-      ],
-      body: rows,
-      columnStyles:{ 0:{ cellWidth:42 }, 1:{ cellWidth:90 }, 2:{ cellWidth:48 } }
-    }));
-    y = doc.lastAutoTable.finalY + 8;
-  });
-
-  const n = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= n; i++) {
-    doc.setPage(i);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
-    doc.text('ELDI Elektro-Dietrich GmbH · Checkliste PV-Anlage', M, FOOT_Y);
-    doc.text('Seite ' + i + ' von ' + n, W - M, FOOT_Y, { align:'right' });
-  }
-
-  const obj = (state.values.objekt || 'ohne_Objekt').replace(/[^A-Za-z0-9äöüÄÖÜß-]+/g, '_').replace(/^_+|_+$/g, '') || 'ohne_Objekt';
-  const datum = state.values.datum || 'ohne_Datum';
-  doc.save('Checkliste_PV_' + obj + '_' + datum + '.pdf');
-}
-
-/* ---------- Entwurf-Hinweis beim Öffnen ---------- */
-function draftBanner(){
-  const d = getStoredDraft();
-  const box = el('div', { class:'msg warn show' });
-  const when = d && d.savedAt ? new Date(d.savedAt).toLocaleString('de-DE') : '';
-  box.appendChild(el('div', null, 'Auf diesem Gerät liegt ein gespeicherter Entwurf' + (when ? ' vom ' + when : '') + '.'));
-  const row = el('div', { class:'tools' });
-  const go = el('button', { type:'button', class:'btn' }, 'Entwurf fortsetzen');
-  go.onclick = () => {
-    if (d) { state.values = d.values || {}; state.remarks = d.remarks || {}; state.remarkOpen = d.remarkOpen || {}; }
-    state.draftDecided = true; state.step = 0; render();
-  };
-  const no = el('button', { type:'button', class:'btn ghost' }, 'Verwerfen und neu beginnen');
-  no.onclick = () => {
-    try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
-    state.values = {}; state.remarks = {}; state.remarkOpen = {};
-    state.draftDecided = true; render();
-  };
-  row.appendChild(go);
-  row.appendChild(no);
-  box.appendChild(row);
-  return box;
 }
 
 /* ---------- Hauptrendering ---------- */
@@ -592,7 +504,7 @@ function render(){
   const top = el('header', { class:'top' });
   top.appendChild(brandMark(34));
   const tt = el('div');
-  tt.appendChild(el('div', { class:'top-title' }, 'Checkliste PV-Anlage'));
+  tt.appendChild(el('div', { class:'top-title' }, 'Checkliste Wärmepumpe'));
   tt.appendChild(el('div', { class:'top-sub' }, 'ELDI Elektro-Dietrich GmbH'));
   top.appendChild(tt);
   const saveBtn = el('button', { type:'button', class:'link', style:'margin-left:auto' }, 'Entwurf speichern');
@@ -602,37 +514,44 @@ function render(){
 
   const pct = Math.round(state.step / total * 100);
   const pr = el('div', { class:'progress', role:'progressbar', 'aria-valuemin':'0', 'aria-valuemax':'100', 'aria-valuenow':String(pct) });
-  const bar = el('div'); bar.style.width = pct + '%';
-  pr.appendChild(bar); app.appendChild(pr);
+  const bar = el('div');
+  bar.style.width = pct + '%';
+  pr.appendChild(bar);
+  app.appendChild(pr);
 
   const main = el('main');
-  if (state.draftMsg) main.appendChild(el('div', { class:'msg ok show' }, state.draftMsg));
+  if (state.msg) main.appendChild(el('div', { class:'msg ok show' }, state.msg));
+  if (!state.draftDecided && getStoredDraft()) main.appendChild(draftBanner());
+
   if (cur.kind === 'summary') {
     renderSummary(main, steps);
   } else {
     main.appendChild(el('h2', null, cur.title));
     main.appendChild(el('div', { class:'step-sub' }, 'Schritt ' + (state.step + 1) + ' von ' + total));
-    if (cur.kind === 'header' && !state.draftDecided && getStoredDraft()) main.appendChild(draftBanner());
     cur.fields.forEach(f => main.appendChild(renderField(f)));
-    if (cur.kind === 'header') main.appendChild(importRow());
     const miss = missingIn(cur.fields);
-    const msg = el('div', { class:'msg err' + (state.showErrors && miss.length ? ' show' : ''), role:'alert' },
-      'Bitte noch ' + miss.length + ' Pflichtfeld(er) ausfüllen.');
-    main.appendChild(msg);
+    main.appendChild(el('div', { class:'msg err' + (state.showErrors && miss.length ? ' show' : ''), role:'alert' }, 'Bitte noch ' + miss.length + ' Pflichtfeld(er) ausfüllen.'));
   }
   app.appendChild(main);
 
   const nav = el('nav', { class:'nav' });
   const back = el('button', { type:'button', class:'btn ghost' }, 'Zurück');
   back.disabled = state.step === 0;
-  back.onclick = () => { state.step--; state.showErrors = false; state.draftMsg = null; window.scrollTo(0,0); render(); };
+  back.onclick = () => { state.step--; state.showErrors = false; state.msg = null; window.scrollTo(0,0); render(); };
   nav.appendChild(back);
 
   if (cur.kind === 'summary') {
     const missCount = steps.slice(0, -1).reduce((n, s) => n + missingIn(s.fields).length, 0);
-    const pdf = el('button', { type:'button', class:'btn' }, 'PDF erzeugen');
+    const pdf = el('button', { type:'button', class:'btn' }, 'Drucken / als PDF speichern');
     pdf.disabled = missCount > 0;
-    pdf.onclick = () => createPdf(steps);
+    pdf.onclick = () => {
+      let blocked = false;
+      try { window.print(); } catch (e) { blocked = true; }
+      state.msg = blocked
+        ? 'Der Druckdialog ist in dieser Vorschau gesperrt. Bitte die Datei direkt im Browser öffnen (Doppelklick auf die Datei) und dort mit Strg+P als PDF speichern.'
+        : 'Erscheint kein Druckdialog? Dann die Datei direkt im Browser öffnen (Doppelklick) und dort mit Strg+P als PDF speichern.';
+      render();
+    };
     nav.appendChild(pdf);
   } else {
     const next = el('button', { type:'button', class:'btn' }, 'Weiter');
@@ -640,7 +559,7 @@ function render(){
       const miss = missingIn(cur.fields);
       if (miss.length) { state.showErrors = true; render(); return; }
       state.showErrors = false;
-      state.draftMsg = null;
+      state.msg = null;
       state.step++;
       window.scrollTo(0,0);
       render();
