@@ -88,6 +88,7 @@ ul.miss{margin:6px 0 0;padding-left:18px}
 <div class="app" id="app"></div>
 <div class="print-doc" id="printDoc"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 /* ---------- Schema ---------- */
 const ANZAHL_WP = Array.from({ length: 10 }, (_, i) => String(i + 1));
@@ -108,7 +109,7 @@ const SCHEMA = {
       { id:'extra_zaehler', label:'Soll ein extra Wärmepumpenzähler gesetzt werden?', type:'yes_no', required:true, remark:true }
     ]},
     { id:'wp', title:'Wärmepumpe(n)', fields:[
-      { id:'anzahl_wp', label:'Wie viele Wärmepumpen sind verbaut?', type:'select', options:ANZAHL_WP, required:true, remark:true },
+      { id:'anzahl_wp', label:'Wie viele Wärmepumpen sind verbaut oder sollen verbaut werden?', type:'select', options:ANZAHL_WP, required:true, remark:true },
       { id:'betriebsweise', label:'Betriebsweise', type:'select', options:['monovalent','bivalent','monoenergetisch'], required:true, remark:true },
       { id:'anzahl_gleich', label:'Anzahl der WP mit gleicher Leistung', type:'text', required:true, inputmode:'numeric', hint:'Z. B. 2, wenn zwei identische Geräte verbaut sind', remark:true },
       { id:'pel_je_wp', label:'Elektrische Anschlussleistung Pel je Wärmepumpe in kW', type:'text', required:true, inputmode:'decimal', hint:'Laut Typenschild, z. B. 3,5', remark:true },
@@ -129,7 +130,12 @@ const SCHEMA = {
 };
 
 /* ---------- Zustand (nur im Speicher) ---------- */
-const state = { step:0, values:{}, remarks:{}, remarkOpen:{}, showErrors:false, msg:null, draftDecided:false };
+/* ---------- Versand-Einstellungen ---------- */
+const RECIPIENT = 'philipp.pracht@eldi-stuttgart.de';
+// URL des Empfangs-Workflows (Webhook). Leer lassen = nur PDF-Download, kein Versand.
+const SEND_WEBHOOK_URL = '';
+
+const state = { step:0, values:{}, remarks:{}, remarkOpen:{}, showErrors:false, msg:null, draftDecided:false, sending:false, sent:false };
 
 /* ---------- Entwurf im Browser (localStorage, nur auf diesem Gerät) ---------- */
 const DRAFT_KEY = 'eldi-checkliste-waermepumpe-entwurf';
@@ -382,6 +388,9 @@ function renderSummary(main, steps){
   bn.onclick = resetDraft;
   tools.appendChild(bx);
   tools.appendChild(bn);
+  const printBtn = el('button', { type:'button', class:'btn ghost' }, 'Als PDF drucken (lokal)');
+  printBtn.onclick = () => printDocument(steps);
+  tools.appendChild(printBtn);
   tools.appendChild(importRow());
   main.appendChild(tools);
   return missing.length;
@@ -489,6 +498,97 @@ function importRow(){
   return row;
 }
 
+/* ---------- PDF erzeugen und senden ---------- */
+function pdfFileName(){
+  const name = ((state.values.name || '') + '_' + (state.values.vorname || '')).replace(/[^A-Za-z0-9äöüÄÖÜß_-]+/g, '_').replace(/^_+|_+$/g, '') || 'ohne_Name';
+  const d = (state.values.datum || new Date().toISOString().slice(0,10));
+  return 'Checkliste_Waermepumpe_' + name + '_' + d + '.pdf';
+}
+function buildPdfDoc(steps){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const W = 210, M = 16, maxW = W - 2 * M, LIMIT = 280;
+  let y = M;
+  const ensure = h => { if (y + h > LIMIT) { doc.addPage(); y = M; } };
+  const writeWrapped = (text, x, size, style, color) => {
+    doc.setFont('helvetica', style || 'normal');
+    doc.setFontSize(size);
+    doc.setTextColor(...(color || [31,31,31]));
+    const lines = doc.splitTextToSize(String(text), maxW - (x - M));
+    const lh = size * 0.42;
+    lines.forEach(line => { ensure(lh + 1); doc.text(line, x, y + size * 0.35); y += lh + 1; });
+  };
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(31,31,31);
+  doc.text('Checkliste Wärmepumpe', M, y + 6); y += 11;
+  doc.setDrawColor(242,140,34); doc.setLineWidth(0.9); doc.line(M, y, W - M, y); y += 6;
+
+  SCHEMA.header.forEach(f => { writeWrapped(f.label + ': ' + answerText(f), M, 10, 'normal'); });
+  y += 2;
+
+  steps.forEach(s => {
+    if (s.kind !== 'block') return;
+    ensure(14);
+    y += 3;
+    writeWrapped(s.title, M, 12, 'bold');
+    doc.setDrawColor(242,140,34); doc.setLineWidth(0.4); doc.line(M, y, W - M, y); y += 3;
+    s.fields.forEach(f => {
+      ensure(12);
+      writeWrapped(f.label, M + 2, 9, 'normal', [90,90,90]);
+      writeWrapped(answerText(f), M + 4, 10, 'bold');
+      if (state.remarks[f.id]) writeWrapped('Bemerkung: ' + state.remarks[f.id], M + 4, 9, 'italic', [90,90,90]);
+      y += 1.5;
+    });
+  });
+
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(85,85,85);
+    doc.text('ELDI Elektro-Dietrich GmbH · Checkliste Wärmepumpe', M, 290);
+    doc.text('Seite ' + i + ' von ' + pages, W - M, 290, { align:'right' });
+  }
+  return doc;
+}
+function printDocument(steps){
+  buildPrintDoc(document.getElementById('printDoc'), steps);
+  let blocked = false;
+  try { window.print(); } catch (e) { blocked = true; }
+  state.msg = blocked
+    ? 'Der Druckdialog ist in dieser Vorschau gesperrt. Bitte die Datei direkt im Browser öffnen und dort mit Strg+P als PDF speichern.'
+    : 'Erscheint kein Druckdialog? Dann die Datei direkt im Browser öffnen und dort mit Strg+P als PDF speichern.';
+  render();
+}
+function sendPdf(steps){
+  if (state.sending || state.sent) return;
+  let doc;
+  try { doc = buildPdfDoc(steps); } catch (e) {
+    state.msg = 'Die PDF konnte nicht erstellt werden. Bitte die Seite neu laden und es erneut versuchen.';
+    render(); return;
+  }
+  const filename = pdfFileName();
+  const kunde = (state.values.vorname || '') + ' ' + (state.values.name || '');
+  if (!SEND_WEBHOOK_URL) {
+    doc.save(filename);
+    state.msg = 'Der automatische Versand ist noch nicht eingerichtet. Die PDF wurde heruntergeladen und bitte an ' + RECIPIENT + ' gesendet.';
+    render(); return;
+  }
+  state.sending = true;
+  state.msg = null;
+  render();
+  const payload = {
+    to: RECIPIENT,
+    subject: 'Checkliste Wärmepumpe - ' + kunde.trim(),
+    body: 'Im Anhang finden Sie die ausgefüllte Checkliste Wärmepumpe' + (kunde.trim() ? ' für ' + kunde.trim() : '') + '.',
+    filename,
+    pdfBase64: doc.output('datauristring').split(',')[1]
+  };
+  fetch(SEND_WEBHOOK_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); state.sent = true; clearStoredDraft(); state.msg = 'Die Checkliste wurde an ' + RECIPIENT + ' gesendet.'; })
+    .catch(() => { doc.save(filename); state.msg = 'Der Versand ist fehlgeschlagen. Die PDF wurde stattdessen heruntergeladen; bitte an ' + RECIPIENT + ' senden.'; })
+    .finally(() => { state.sending = false; render(); });
+}
+
 /* ---------- Hauptrendering ---------- */
 function render(){
   const steps = getSteps();
@@ -539,17 +639,9 @@ function render(){
 
   if (cur.kind === 'summary') {
     const missCount = steps.slice(0, -1).reduce((n, s) => n + missingIn(s.fields).length, 0);
-    const pdf = el('button', { type:'button', class:'btn' }, 'Drucken / als PDF speichern');
-    pdf.disabled = missCount > 0;
-    pdf.onclick = () => {
-      buildPrintDoc(document.getElementById('printDoc'), steps);
-      let blocked = false;
-      try { window.print(); } catch (e) { blocked = true; }
-      state.msg = blocked
-        ? 'Der Druckdialog ist in dieser Vorschau gesperrt. Bitte die Datei direkt im Browser öffnen (Doppelklick auf die Datei) und dort mit Strg+P als PDF speichern.'
-        : 'Erscheint kein Druckdialog? Dann die Datei direkt im Browser öffnen (Doppelklick) und dort mit Strg+P als PDF speichern.';
-      render();
-    };
+    const pdf = el('button', { type:'button', class:'btn' }, state.sending ? 'Wird gesendet …' : (state.sent ? 'Gesendet' : 'Fertig und senden'));
+    pdf.disabled = missCount > 0 || state.sending || state.sent;
+    pdf.onclick = () => sendPdf(steps);
     nav.appendChild(pdf);
   } else {
     const next = el('button', { type:'button', class:'btn' }, 'Weiter');
